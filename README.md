@@ -1,102 +1,156 @@
-# What This Code Does
+# PRA-B---Localization-paper
 
-This MATLAB script studies **continuous-time quantum walks (CTQWs)** on three
-families of graphs, and compares a *numerically computed* quantity called the
-**dynamical inverse participation ratio (IPR)** against *closed-form analytical
-formulas*. It produces two figures.
+## Code for the PRA paper
+
+This repository contains the MATLAB code used to study **continuous-time quantum walks (CTQWs)** on three families of graphs and to compare a numerically computed quantity, the **dynamical inverse participation ratio (IPR)**, with closed-form analytical formulas.
+
+The main script is:
+
+```matlab
+IPR_limiting_combined.m
+```
+
+The script produces the two figures described below and is fully self-contained: no external datasets or `.mat`/`.csv` files are required.
+
+## Requirements
+
+- MATLAB
+- No external datasets are required.
+- No additional data files are required.
+
+The graphs and all numerical data used by the calculations are generated programmatically by the MATLAB script.
+
+## Running the code
+
+1. Clone or download this repository.
+2. Open MATLAB.
+3. Set the MATLAB current directory to the repository directory.
+4. Run:
+
+```matlab
+IPR_limiting_combined
+```
+
+The script generates the two figures described below.
 
 ## 1. The three graph families
 
-All three graphs are built from `n`-vertex complete graphs (cliques, `K_n`)
-glued together in different ways:
+All three graphs are built from `n`-vertex complete graphs (cliques, `K_n`) glued together in different ways:
 
-- **Barbell graph `B_n`** (`build_barbell`) — two cliques `K_n`, joined by a
-  single bridge edge between one vertex of each clique. Total vertices: `2n`.
-- **Star of Cliques, Variant 1 — "full connection"** (`build_star_v1`) — one
-  hub vertex connected to *every* vertex of `n` separate `K_n` cliques.
-  Total vertices: `1 + n²`.
-- **Star of Cliques, Variant 2 — "single connection"** (`build_star_v2`) —
-  same layout, but the hub connects to only *one* vertex per clique (that
-  vertex acts as a "bridge" vertex for the clique). Total vertices: `1 + n²`.
+- **Barbell graph `B_n`** (`build_barbell`) — two cliques `K_n`, joined by a single bridge edge between one vertex of each clique. Total vertices: `2n`.
 
-## 2. Core computation pipeline (for each graph)
+- **Star of Cliques, Variant 1 — "full connection"** (`build_star_v1`) — one hub vertex connected to every vertex of `n` separate `K_n` cliques. Total vertices: `1 + n²`.
+
+- **Star of Cliques, Variant 2 — "single connection"** (`build_star_v2`) — the same layout, but the hub connects to only one vertex per clique (that vertex acts as a bridge vertex for the clique). Total vertices: `1 + n²`.
+
+## 2. Core computation pipeline
 
 For each adjacency matrix `A`, the script:
 
-1. **Normalizes** the adjacency matrix (`normalize_adj`):
-   `M = D^{-1/2} A D^{-1/2}`, i.e. a symmetric, degree-normalized version of
-   the adjacency matrix (the natural Hamiltonian/generator for a CTQW on a
-   graph).
-2. **Computes the limiting (Cesàro-time-averaged) distribution**
-   (`limiting_distribution`): diagonalizes `M`, groups eigenvectors by
-   (numerically) repeated eigenvalues into eigenspaces, builds the orthogonal
-   projector `P_E` onto each eigenspace, and accumulates
-   `Π = Σ_E (P_E)∘(P_E)` (elementwise square of each projector, summed over
-   distinct eigenvalues `E`). The entry `Π_ij` is the long-time-averaged
-   probability of finding a quantum walker at vertex `i` given it started at
-   vertex `j`.
-3. **Computes the dynamical IPR** (`dynamical_ipr`) for a chosen starting
-   vertex `j`: `IPR_j = Σ_i Π_ij²`. This measures how *localized* (large IPR,
-   walker stays put) vs. how *spread out* (small IPR, walker delocalizes
-   over many vertices) the long-time walk distribution is when starting at
-   vertex `j`. It is the quantum-walk analogue of the IPR used to
-   characterize localization in condensed matter physics.
+1. **Normalizes the adjacency matrix** (`normalize_adj`):
+   `M = D^{-1/2} A D^{-1/2}`, i.e. a symmetric, degree-normalized version of the adjacency matrix.
 
-## 3. Part 1 — IPR vs. graph size `n`
+2. **Computes the limiting (Cesàro-time-averaged) distribution** (`limiting_distribution`): diagonalizes `M`, groups eigenvectors by (numerically) repeated eigenvalues into eigenspaces, builds the orthogonal projector `P_E` onto each eigenspace, and accumulates
 
-For `n = 4, 6, 8, ..., 70`, the script computes the **numerical** dynamical
-IPR at specific vertices of interest (clique-interior vertices, bridge
-vertices, hub vertices) for all three graph families, and compares them to
-**analytical/exact formulas** derived from the graphs' known spectra (e.g.
-`1 - 4/n + 1/n²` for a clique-interior vertex, `(n⁴+2n²+5)/(n+1)⁴` for the
-Variant-1 hub, `1/4` for the Variant-2 hub, etc.).
+   `Π = Σ_E (P_E)∘(P_E)`
 
-The result is **Figure 1**, a 3-panel plot (one panel per graph family)
-showing solid lines (theoretical formulas) overlaid with markers (numerical
-values) as functions of `n` — a visual check that the analytical predictions
-match direct numerical diagonalization.
+   where `∘` denotes the elementwise product. The entry `Π_ij` is the long-time-averaged probability of finding a quantum walker at vertex `i` given that it started at vertex `j`.
 
-## 4. Part 2 — Full limiting-distribution heatmaps
+3. **Computes the dynamical IPR** (`dynamical_ipr`) for a chosen starting vertex `j`:
 
-For a fixed size (`n = 6`), the script computes the full matrix `Π` for each
-of the three graphs and displays it as a **heatmap** (`imagesc`) — **Figure
-2**, a 3-panel plot showing, for every pair of vertices `(i, j)`, the
-long-time probability of transition from `j` to `i`. This visualizes the
-block/community structure of each graph (cliques appear as bright blocks,
-bridges/hub connections as faint off-block regions).
+   `IPR_j = Σ_i Π_ij²`.
 
-## 5. Helper functions summary
+   This measures how localized (large IPR) versus how spread out (small IPR) the long-time walk distribution is when starting at vertex `j`.
+
+## 3. Figure 1 — IPR versus graph size
+
+For
+
+```matlab
+n = 4, 6, 8, ..., 70
+```
+
+the script computes the numerical dynamical IPR at specific vertices of interest (clique-interior vertices, bridge vertices, and hub vertices) for all three graph families.
+
+These numerical values are compared with analytical/exact formulas derived from the known spectra of the graphs, including formulas such as
+
+```text
+1 - 4/n + 1/n²
+```
+
+for a clique-interior vertex,
+
+```text
+(n⁴ + 2n² + 5)/(n+1)⁴
+```
+
+for the Variant-1 hub, and
+
+```text
+1/4
+```
+
+for the Variant-2 hub.
+
+**Figure 1** is a three-panel plot, one panel for each graph family. Solid lines represent the theoretical formulas and markers represent numerical values obtained by direct diagonalization. The figure therefore provides a numerical check of the analytical predictions.
+
+## 4. Figure 2 — Full limiting-distribution heatmaps
+
+For a fixed size
+
+```matlab
+n = 6
+```
+
+the script computes the full matrix `Π` for each of the three graph families and displays it as a heatmap using `imagesc`.
+
+**Figure 2** is a three-panel plot showing, for every pair of vertices `(i,j)`, the long-time probability of transition from `j` to `i`.
+
+The heatmaps visualize the block/community structure of the graphs: cliques appear as bright blocks, while bridge and hub connections produce fainter off-block regions.
+
+## 5. Helper functions
+
+The main script contains the following functions:
 
 | Function | Purpose |
 |---|---|
-| `build_barbell(n)` | Builds adjacency matrix for the barbell graph |
-| `build_star_v1(n)` | Builds adjacency matrix for Star-of-Cliques V1 (hub fully connected to each clique) |
-| `build_star_v2(n)` | Builds adjacency matrix for Star-of-Cliques V2 (hub connected to one vertex per clique) |
-| `normalize_adj(A)` | Symmetric degree-normalization of adjacency matrix |
-| `limiting_distribution(M)` | Computes the exact Cesàro-limit transition-probability matrix `Π` via spectral projectors |
+| `build_barbell(n)` | Builds the adjacency matrix for the barbell graph |
+| `build_star_v1(n)` | Builds the adjacency matrix for Star-of-Cliques V1 |
+| `build_star_v2(n)` | Builds the adjacency matrix for Star-of-Cliques V2 |
+| `normalize_adj(A)` | Performs symmetric degree-normalization of the adjacency matrix |
+| `limiting_distribution(M)` | Computes the Cesàro-limit transition-probability matrix `Π` via spectral projectors |
 | `dynamical_ipr(Pi, j)` | Computes the dynamical IPR for a walk started at vertex `j` |
-| `clamp01(x)` | Utility to clip a value into `[0, 1]` (defined but not actually called anywhere in the script) |
+| `clamp01(x)` | Utility that clips a value into `[0,1]`; defined but not called in the current script |
 
----
+## 6. Data and reproducibility
 
-## What about data?
+No external data are used or required.
 
-**No external data is used or required.** This script is fully
-**self-contained**:
+All graphs are generated programmatically inside `IPR_limiting_combined.m` using the combinatorial definitions of the three graph families. The numerical parameters used in the two parts of the script are:
 
-- It does not read any files, datasets, `.mat` files, or `.csv` files.
-- All "data" — the graphs (adjacency matrices) — are **generated
-  programmatically** inside the script itself, using pure combinatorial rules
-  (`ones(n) - eye(n)` for a complete graph block, plus explicit bridge/hub
-  edges).
-- The only numerical inputs are the graph-size parameters `nvals = 4:2:70`
-  (for Part 1) and `n_fig = 6` (for Part 2), both hard-coded at the top of
-  each section.
-- The only outputs are the two MATLAB figures (`figure(...)` windows) — the
-  script does not save any files, write results to disk, or export data,
-  unless you add that yourself (e.g. `saveas(gcf, 'fig1.png')`).
+- `nvals = 4:2:70` for Figure 1.
+- `n_fig = 6` for Figure 2.
 
-So there's nothing to upload or supply — you can run the script as-is and it
-will regenerate everything from scratch.
-# PRA-B---Localization-paper
-# PRA-B---Localization-paper
+The script does not read external datasets or `.mat`/`.csv` files and does not save output files automatically. The figures are displayed as MATLAB figure windows when the script is run.
+
+## 7. Citation
+
+If you use this code in your research, please cite the accompanying paper:
+
+> **[Paper citation to be added when the final publication details are available.]**
+
+The repository can be updated with the final bibliographic information and DOI when available.
+
+## 8. License
+
+This code is distributed under the MIT License. See the [`LICENSE`](LICENSE) file for details.
+
+## 9. Repository contents
+
+At present, the repository contains the MATLAB script
+
+```text
+IPR_limiting_combined.m
+```
+
+together with this README and the MIT license.
